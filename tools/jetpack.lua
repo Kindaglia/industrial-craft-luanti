@@ -97,18 +97,18 @@ local function onGlobalStep(player, inv, itemstack, index, def)
             addYVelocityClamped(player, 1, 10)
             inv:set_stack("armor", index, itemstack)
             
-            -- Riproduci il suono del jetpack
-            local pos = player:get_pos()
-            local handle = minetest.sound_play("JetpackLoop", {
-                pos = pos,
-                gain = 0.2,  -- Volume adjustment
-                max_hear_distance = 16,  -- Maximum distance the sound can be heard
-                object = player,
-                loop = true,
-            })
-            
-            -- Memorizza l'handle del suono
-            sound_handles[player_name] = handle
+            -- Riproduci il suono del jetpack se non è già in esecuzione
+            if not sound_handles[player_name] then
+                local pos = player:get_pos()
+                local handle = minetest.sound_play("JetpackLoop", {
+                    pos = pos,
+                    gain = 1.0,  -- Volume adjustment
+                    max_hear_distance = 16,  -- Maximum distance the sound can be heard
+                    object = player,
+                    loop = true,
+                })
+                sound_handles[player_name] = handle
+            end
             
             return true
         else
