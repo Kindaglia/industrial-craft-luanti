@@ -97,7 +97,7 @@ local function onGlobalStep(player, inv, itemstack, index, def)
         minetest.debug("[IndustrialTest] Player has jetpack equipped.")
         if def._industrialtest_tryFly(itemstack) then
             minetest.debug("[IndustrialTest] Jetpack is active.")
-            addYVelocityClamped(player, 1, 10)
+            addYVelocityClamped(player, 3, 20)  -- Aumenta la velocità da 1 a 2
             inv:set_stack("armor", index, itemstack)
             
             -- Riproduci il suono del jetpack se non è già in esecuzione
