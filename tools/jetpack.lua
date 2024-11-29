@@ -5,6 +5,10 @@ local electricJetpack = {}
 
 local sound_handles = {}
 
+local function vectorToString(v)
+    return "(" .. v.x .. ", " .. v.y .. ", " .. v.z .. ")"
+end
+
 local function registerJetpack(config)
     minetest.debug("[IndustrialTest] Registering jetpack: " .. config.name)
     if industrialtest.mclAvailable then
@@ -74,7 +78,7 @@ local function addYVelocityClamped(player, vel, max)
     minetest.debug("[IndustrialTest] Player: " .. tostring(player))
     minetest.debug("[IndustrialTest] Velocity to add (vel): " .. tostring(vel))
     minetest.debug("[IndustrialTest] Maximum velocity (max): " .. tostring(max))
-    minetest.debug("[IndustrialTest] Current player velocity (playerVel): " .. vector.tostring(playerVel))
+    minetest.debug("[IndustrialTest] Current player velocity (playerVel): " .. vectorToString(playerVel))
     
     if playerVel.y + vel > max then
         local new_y_vel = math.max(max - playerVel.y, 0)
