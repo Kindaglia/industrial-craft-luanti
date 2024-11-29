@@ -1,19 +1,3 @@
--- IndustrialTest
--- Copyright (C) 2024 mrkubax10
-
--- This program is free software: you can redistribute it and/or modify
--- it under the terms of the GNU General Public License as published by
--- the Free Software Foundation, either version 3 of the License, or
--- (at your option) any later version.
-
--- This program is distributed in the hope that it will be useful,
--- but WITHOUT ANY WARRANTY; without even the implied warranty of
--- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
--- GNU General Public License for more details.
-
--- You should have received a copy of the GNU General Public License
--- along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
 local S = minetest.get_translator("industrialtest")
 
 local jetpack = {}
@@ -22,6 +6,7 @@ local electricJetpack = {}
 local sound_handles = {}
 
 local function registerJetpack(config)
+    minetest.debug("[IndustrialTest] Registering jetpack: " .. config.name)
     if industrialtest.mclAvailable then
         local groups = {
             armor = 1,
@@ -92,8 +77,11 @@ end
 
 local function onGlobalStep(player, inv, itemstack, index, def)
     local player_name = player:get_player_name()
+    minetest.debug("[IndustrialTest] Checking global step for player: " .. player_name)
     if def.groups and def.groups._industrialtest_jetpack then
+        minetest.debug("[IndustrialTest] Player has jetpack equipped.")
         if def._industrialtest_tryFly(itemstack) then
+            minetest.debug("[IndustrialTest] Jetpack is active.")
             addYVelocityClamped(player, 1, 10)
             inv:set_stack("armor", index, itemstack)
             
@@ -108,6 +96,7 @@ local function onGlobalStep(player, inv, itemstack, index, def)
                     loop = true,
                 })
                 sound_handles[player_name] = handle
+                minetest.debug("[IndustrialTest] Jetpack sound started for player: " .. player_name)
             end
             
             return true
@@ -116,6 +105,7 @@ local function onGlobalStep(player, inv, itemstack, index, def)
             if sound_handles[player_name] then
                 minetest.sound_stop(sound_handles[player_name])
                 sound_handles[player_name] = nil
+                minetest.debug("[IndustrialTest] Jetpack sound stopped for player: " .. player_name)
             end
         end
     end
@@ -124,10 +114,14 @@ end
 
 jetpack.tryFly = function(itemstack)
     local meta = itemstack:get_meta()
-    if meta:get_int("industrialtest.fluidAmount") == 0 then
+    local fluidAmount = meta:get_int("industrialtest.fluidAmount")
+    minetest.debug("[IndustrialTest] Jetpack fluid amount: " .. fluidAmount)
+    if fluidAmount == 0 then
+        minetest.debug("[IndustrialTest] Jetpack out of fuel.")
         return false
     end
     industrialtest.api.addFluidToItem(itemstack, -1)
+    minetest.debug("[IndustrialTest] Jetpack consumed 1 unit of fuel.")
     return true
 end
 
@@ -156,10 +150,14 @@ minetest.register_craft({
 
 electricJetpack.tryFly = function(itemstack)
     local meta = itemstack:get_meta()
-    if meta:get_int("industrialtest.powerAmount") < 10 then
+    local powerAmount = meta:get_int("industrialtest.powerAmount")
+    minetest.debug("[IndustrialTest] Electric Jetpack power amount: " .. powerAmount)
+    if powerAmount < 10 then
+        minetest.debug("[IndustrialTest] Electric Jetpack out of power.")
         return false
     end
     industrialtest.api.addPowerToItem(itemstack, -10)
+    minetest.debug("[IndustrialTest] Electric Jetpack consumed 10 units of power.")
     return true
 end
 
@@ -191,6 +189,7 @@ minetest.register_globalstep(function(dtime)
         local player_name = player:get_player_name()
         
         if control.jump then
+            minetest.debug("[IndustrialTest] Player is jumping.")
             if industrialtest.mclAvailable then
                 local inv = player:get_inventory()
                 local stack = inv:get_stack("armor", 3)
@@ -215,6 +214,7 @@ minetest.register_globalstep(function(dtime)
             if sound_handles[player_name] then
                 minetest.sound_stop(sound_handles[player_name])
                 sound_handles[player_name] = nil
+                minetest.debug("[IndustrialTest] Jetpack sound stopped for player: " .. player_name .. " because they are not jumping.")
             end
         end
     end
