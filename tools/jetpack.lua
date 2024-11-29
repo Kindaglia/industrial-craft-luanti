@@ -94,7 +94,12 @@ local function onGlobalStep(player, inv, itemstack, index, def)
     local player_name = player:get_player_name()
     if def.groups and def.groups._industrialtest_jetpack then
         if def._industrialtest_tryFly(itemstack) then
-            addYVelocityClamped(player, 1, 10)
+            reverse_gravity_force = 1
+            local movement_gravity = tonumber(minetest.settings:get("movement_gravity"))
+            if movement_gravity and movement_gravity > 10 then
+                reverse_gravity_force = 1.5
+            end
+            addYVelocityClamped(player, reverse_gravity_force, 10)
             inv:set_stack("armor", index, itemstack)
             
             -- Riproduci il suono del jetpack se non è già in esecuzione
@@ -121,7 +126,6 @@ local function onGlobalStep(player, inv, itemstack, index, def)
     end
     return false
 end
-
 jetpack.tryFly = function(itemstack)
     local meta = itemstack:get_meta()
     if meta:get_int("industrialtest.fluidAmount") == 0 then
