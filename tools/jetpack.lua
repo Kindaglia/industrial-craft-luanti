@@ -67,11 +67,22 @@ local function registerJetpack(config)
 end
 
 local function addYVelocityClamped(player, vel, max)
+    local player_name = player:get_player_name()
     local playerVel = player:get_velocity()
+    
+    minetest.debug("[IndustrialTest] addYVelocityClamped called for player: " .. player_name)
+    minetest.debug("[IndustrialTest] Player: " .. tostring(player))
+    minetest.debug("[IndustrialTest] Velocity to add (vel): " .. tostring(vel))
+    minetest.debug("[IndustrialTest] Maximum velocity (max): " .. tostring(max))
+    minetest.debug("[IndustrialTest] Current player velocity (playerVel): " .. vector.tostring(playerVel))
+    
     if playerVel.y + vel > max then
-        player:add_velocity(vector.new(0, math.max(max - playerVel.y, 0), 0))
+        local new_y_vel = math.max(max - playerVel.y, 0)
+        player:add_velocity(vector.new(0, new_y_vel, 0))
+        minetest.debug("[IndustrialTest] New Y velocity added: " .. tostring(new_y_vel))
     else
         player:add_velocity(vector.new(0, vel, 0))
+        minetest.debug("[IndustrialTest] Full Y velocity added: " .. tostring(vel))
     end
 end
 
