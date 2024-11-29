@@ -14,177 +14,212 @@
 -- You should have received a copy of the GNU General Public License
 -- along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-local S=minetest.get_translator("industrialtest")
+local S = minetest.get_translator("industrialtest")
 
-local jetpack={}
-local electricJetpack={}
+local jetpack = {}
+local electricJetpack = {}
+
+local sound_handles = {}
 
 local function registerJetpack(config)
-	if industrialtest.mclAvailable then
-		local groups={
-			armor=1,
-			non_combat_armor=1,
-			armor_torso=1,
-			non_combat_torso=1,
-			_industrialtest_jetpack=1
-		}
-		if config.groups then
-			for key,value in pairs(config.groups) do
-				groups[key]=value
-			end
-		end
-		local definition={
-			description=config.displayName,
-			inventory_image="industrialtest_"..config.name.."_inv.png",
-			groups=groups,
-			sounds={
-				_mcl_armor_equip="mcl_armor_equip_iron",
-				_mcl_armor_unequip="mcl_armor_unequip_iron"
-			},
-			on_place=mcl_armor.equip_on_use,
-			on_secondary_use=mcl_armor.equip_on_use,
-			_mcl_armor_element="torso",
-			_mcl_armor_texture="industrialtest_"..config.name..".png",
-			_industrialtest_tryFly=config.tryFly
-		}
-		if config.customKeys then
-			for key,value in pairs(config.customKeys) do
-				definition[key]=value
-			end
-		end
-		minetest.register_tool("industrialtest:"..config.name,definition)
-	elseif industrialtest.mtgAvailable then
-		local groups={
-			armor_torso=1,
-			armor_heal=0,
-			_industrialtest_jetpack=1
-		}
-		if config.groups then
-			for key,value in pairs(config.groups) do
-				groups[key]=value
-			end
-		end
-		local definition={
-			description=config.displayName,
-			inventory_image="industrialtest_"..config.name.."_inv.png",
-			groups=groups,
-			_industrialtest_tryFly=config.tryFly
-		}
-		if config.customKeys then
-			for key,value in pairs(config.customKeys) do
-				definition[key]=value
-			end
-		end
-		armor:register_armor("industrialtest:"..config.name,definition)
-	end
+    if industrialtest.mclAvailable then
+        local groups = {
+            armor = 1,
+            non_combat_armor = 1,
+            armor_torso = 1,
+            non_combat_torso = 1,
+            _industrialtest_jetpack = 1
+        }
+        if config.groups then
+            for key, value in pairs(config.groups) do
+                groups[key] = value
+            end
+        end
+        local definition = {
+            description = config.displayName,
+            inventory_image = "industrialtest_" .. config.name .. "_inv.png",
+            groups = groups,
+            sounds = {
+                _mcl_armor_equip = "mcl_armor_equip_iron",
+                _mcl_armor_unequip = "mcl_armor_unequip_iron"
+            },
+            on_place = mcl_armor.equip_on_use,
+            on_secondary_use = mcl_armor.equip_on_use,
+            _mcl_armor_element = "torso",
+            _mcl_armor_texture = "industrialtest_" .. config.name .. ".png",
+            _industrialtest_tryFly = config.tryFly
+        }
+        if config.customKeys then
+            for key, value in pairs(config.customKeys) do
+                definition[key] = value
+            end
+        end
+        minetest.register_tool("industrialtest:" .. config.name, definition)
+    elseif industrialtest.mtgAvailable then
+        local groups = {
+            armor_torso = 1,
+            armor_heal = 0,
+            _industrialtest_jetpack = 1
+        }
+        if config.groups then
+            for key, value in pairs(config.groups) do
+                groups[key] = value
+            end
+        end
+        local definition = {
+            description = config.displayName,
+            inventory_image = "industrialtest_" .. config.name .. "_inv.png",
+            groups = groups,
+            _industrialtest_tryFly = config.tryFly
+        }
+        if config.customKeys then
+            for key, value in pairs(config.customKeys) do
+                definition[key] = value
+            end
+        end
+        armor:register_armor("industrialtest:" .. config.name, definition)
+    end
 end
 
-local function addYVelocityClamped(player,vel,max)
-	local playerVel=player:get_velocity()
-	if playerVel.y+vel>max then
-		player:add_velocity(vector.new(0,math.max(max-playerVel.y,0),0))
-	else
-		player:add_velocity(vector.new(0,vel,0))
-	end
+local function addYVelocityClamped(player, vel, max)
+    local playerVel = player:get_velocity()
+    if playerVel.y + vel > max then
+        player:add_velocity(vector.new(0, math.max(max - playerVel.y, 0), 0))
+    else
+        player:add_velocity(vector.new(0, vel, 0))
+    end
 end
 
-local function onGlobalStep(player,inv,itemstack,index,def)
-	if def.groups and def.groups._industrialtest_jetpack then
-		if def._industrialtest_tryFly(itemstack) then
-			addYVelocityClamped(player,1,10)
-			inv:set_stack("armor",index,itemstack)
-		end
-		return true
-	end
-	return false
+local function onGlobalStep(player, inv, itemstack, index, def)
+    local player_name = player:get_player_name()
+    if def.groups and def.groups._industrialtest_jetpack then
+        if def._industrialtest_tryFly(itemstack) then
+            reverse_gravity_force = 1
+            local movement_gravity = tonumber(minetest.settings:get("movement_gravity"))
+            if movement_gravity and movement_gravity > 10 then
+                reverse_gravity_force = 1.5
+            end
+            addYVelocityClamped(player, reverse_gravity_force, 10)
+            inv:set_stack("armor", index, itemstack)
+            
+            -- Riproduci il suono del jetpack se non è già in esecuzione
+            if not sound_handles[player_name] then
+                local pos = player:get_pos()
+                local handle = minetest.sound_play("JetpackLoop", {
+                    pos = pos,
+                    gain = 1.0,  -- Volume adjustment
+                    max_hear_distance = 16,  -- Maximum distance the sound can be heard
+                    object = player,
+                    loop = true,
+                })
+                sound_handles[player_name] = handle
+            end
+            
+            return true
+        else
+            -- Ferma il suono del jetpack se non sta volando
+            if sound_handles[player_name] then
+                minetest.sound_stop(sound_handles[player_name])
+                sound_handles[player_name] = nil
+            end
+        end
+    end
+    return false
 end
-
-jetpack.tryFly=function(itemstack)
-	local meta=itemstack:get_meta()
-	if meta:get_int("industrialtest.fluidAmount")==0 then
-		return false
-	end
-	industrialtest.api.addFluidToItem(itemstack,-1)
-	return true
+jetpack.tryFly = function(itemstack)
+    local meta = itemstack:get_meta()
+    if meta:get_int("industrialtest.fluidAmount") == 0 then
+        return false
+    end
+    industrialtest.api.addFluidToItem(itemstack, -1)
+    return true
 end
 
 -- _v is hack to suppress "Registered armor doesn't have material at the end of registration name" warning from 3D Armor.
 registerJetpack({
-	name="jetpack_v",
-	displayName=S("Jetpack"),
-	groups={
-		_industrialtest_fueled=1,
-		_industrialtest_fluidStorage=1
-	},
-	tryFly=jetpack.tryFly,
-	customKeys={
-		_industrialtest_fluidCapacity=5000
-	}
+    name = "jetpack_v",
+    displayName = S("Jetpack"),
+    groups = {
+        _industrialtest_fueled = 1,
+        _industrialtest_fluidStorage = 1
+    },
+    tryFly = jetpack.tryFly,
+    customKeys = {
+        _industrialtest_fluidCapacity = 5000
+    }
 })
 minetest.register_craft({
-	type="shaped",
-	output="industrialtest:jetpack_v",
-	recipe={
-		{"industrialtest:refined_iron_ingot","industrialtest:electronic_circuit","industrialtest:refined_iron_ingot"},
-		{"industrialtest:refined_iron_ingot","industrialtest:fuel_can","industrialtest:refined_iron_ingot"},
-		{industrialtest.elementKeys.powerCarrier,"",industrialtest.elementKeys.powerCarrier}
-	}
+    type = "shaped",
+    output = "industrialtest:jetpack_v",
+    recipe = {
+        {"industrialtest:refined_iron_ingot", "industrialtest:electronic_circuit", "industrialtest:refined_iron_ingot"},
+        {"industrialtest:refined_iron_ingot", "industrialtest:fuel_can", "industrialtest:refined_iron_ingot"},
+        {industrialtest.elementKeys.powerCarrier, "", industrialtest.elementKeys.powerCarrier}
+    }
 })
 
-electricJetpack.tryFly=function(itemstack)
-	local meta=itemstack:get_meta()
-	if meta:get_int("industrialtest.powerAmount")<10 then
-		return false
-	end
-	industrialtest.api.addPowerToItem(itemstack,-10)
-	return true
+electricJetpack.tryFly = function(itemstack)
+    local meta = itemstack:get_meta()
+    if meta:get_int("industrialtest.powerAmount") < 10 then
+        return false
+    end
+    industrialtest.api.addPowerToItem(itemstack, -10)
+    return true
 end
 
 registerJetpack({
-	name="electric_jetpack",
-	displayName=S("Electric Jetpack"),
-	tryFly=electricJetpack.tryFly,
-	customKeys={
-		_industrialtest_powerStorage=true,
-		_industrialtest_powerCapacity=30000,
-		_industrialtest_powerFlow=industrialtest.api.lvPowerFlow
-	}
+    name = "electric_jetpack",
+    displayName = S("Electric Jetpack"),
+    tryFly = electricJetpack.tryFly,
+    customKeys = {
+        _industrialtest_powerStorage = true,
+        _industrialtest_powerCapacity = 30000,
+        _industrialtest_powerFlow = industrialtest.api.lvPowerFlow
+    }
 })
 minetest.register_craft({
-	type="shaped",
-	output="industrialtest:electric_jetpack",
-	recipe={
-		{"industrialtest:refined_iron_ingot","industrialtest:advanced_electronic_circuit","industrialtest:refined_iron_ingot"},
-		{"industrialtest:refined_iron_ingot","industrialtest:batbox","industrialtest:refined_iron_ingot"},
-		{industrialtest.elementKeys.yellowDust,"",industrialtest.elementKeys.yellowDust}
-	}
+    type = "shaped",
+    output = "industrialtest:electric_jetpack",
+    recipe = {
+        {"industrialtest:refined_iron_ingot", "industrialtest:advanced_electronic_circuit", "industrialtest:refined_iron_ingot"},
+        {"industrialtest:refined_iron_ingot", "industrialtest:batbox", "industrialtest:refined_iron_ingot"},
+        {industrialtest.elementKeys.yellowDust, "", industrialtest.elementKeys.yellowDust}
+    }
 })
 
 minetest.register_globalstep(function(dtime)
-	-- FIXME: Maybe this can be optimized?
-	local players=minetest.get_connected_players()
-	for _,player in ipairs(players) do
-		local control=player:get_player_control()
-		if control.jump then
-			if industrialtest.mclAvailable then
-				local inv=player:get_inventory()
-				local stack=inv:get_stack("armor",3)
-				local def=stack:get_definition()
-				onGlobalStep(player,inv,stack,3,def)
-			elseif industrialtest.mtgAvailable then
-				local _,inv=armor:get_valid_player(player,"")
-				if inv then
-					local armorList=inv:get_list("armor")
-					assert(armorList)
-					for i=1,#armorList do
-						local stack=armorList[i]
-						local def=stack:get_definition()
-						if onGlobalStep(player,inv,stack,i,def) then
-							break
-						end
-					end
-				end
-			end
-		end
-	end
+    -- FIXME: Maybe this can be optimized?
+    local players = minetest.get_connected_players()
+    for _, player in ipairs(players) do
+        local control = player:get_player_control()
+        local player_name = player:get_player_name()
+        
+        if control.jump then
+            if industrialtest.mclAvailable then
+                local inv = player:get_inventory()
+                local stack = inv:get_stack("armor", 3)
+                local def = stack:get_definition()
+                onGlobalStep(player, inv, stack, 3, def)
+            elseif industrialtest.mtgAvailable then
+                local _, inv = armor:get_valid_player(player, "")
+                if inv then
+                    local armorList = inv:get_list("armor")
+                    assert(armorList)
+                    for i = 1, #armorList do
+                        local stack = armorList[i]
+                        local def = stack:get_definition()
+                        if onGlobalStep(player, inv, stack, i, def) then
+                            break
+                        end
+                    end
+                end
+            end
+        else
+            -- Ferma il suono del jetpack se il giocatore non sta saltando
+            if sound_handles[player_name] then
+                minetest.sound_stop(sound_handles[player_name])
+                sound_handles[player_name] = nil
+            end
+        end
+    end
 end)
