@@ -18,6 +18,8 @@ local S=minetest.get_translator("industrialtest")
 
 local electricDrill={}
 
+local sound_handles = {}
+
 electricDrill.afterUse=function(itemstack,config)
 	local meta=itemstack:get_meta()
 	industrialtest.api.addPowerToItem(itemstack,-20)
