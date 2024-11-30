@@ -97,7 +97,7 @@ local function onGlobalStep(player, inv, itemstack, index, def)
             reverse_gravity_force = 1
             local movement_gravity = tonumber(minetest.settings:get("movement_gravity"))
             if movement_gravity and movement_gravity > 10 then
-                reverse_gravity_force = 1.5
+                reverse_gravity_force = 2
             end
             addYVelocityClamped(player, reverse_gravity_force, 10)
             inv:set_stack("armor", index, itemstack)
