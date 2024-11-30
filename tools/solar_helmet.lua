@@ -18,24 +18,48 @@ local S=minetest.get_translator("industrialtest")
 
 local updateDelta=0
 
-local function onGlobalStep(player,inv,stack)
-	if stack:get_name()~="industrialtest:solar_helmet" then
-		return false
-	end
-	local amount=math.floor((minetest.get_node_light(player:get_pos()) or 0)/2)
-	if amount==0 then
-		return true
-	end
-	local armorList=inv:get_list("armor")
-	for i=1,#armorList do
-		local meta=armorList[i]:get_meta()
-		if industrialtest.api.hasPowerStorage(meta) and not industrialtest.api.isFullyCharged(meta) then
-			industrialtest.api.addPowerToItem(armorList[i],amount)
-			inv:set_stack("armor",i,armorList[i])
-			break
-		end
-	end
-	return true
+local function onGlobalStep(player, inv, stack)
+    -- Get the player's inventory
+    local inv = player:get_inventory()
+    if not inv then
+        return false
+    end
+
+    -- Retrieve the helmet from the second slot of the armor inventory
+    local head_stack = inv:get_stack("armor", 2)
+    if head_stack:is_empty() then
+        return false
+    end
+
+    -- Check if the equipped item is the Solar Helmet
+    if head_stack:get_name() ~= "industrialtest:solar_helmet" then
+        return false
+    end
+
+    -- Calculate the light level and determine the amount of energy to add
+    local light_level = minetest.get_node_light(player:get_pos()) or 0
+    local amount = math.floor(light_level / 2)
+    if amount == 0 then
+        return true
+    end
+
+    -- Iterate through the armor list to find items that can be charged
+    local armorList = inv:get_list("armor")
+    if not armorList then
+        return false
+    end
+
+    for i = 1, #armorList do
+        local meta = armorList[i]:get_meta()
+        if industrialtest.api.hasPowerStorage(meta) then
+            if not industrialtest.api.isFullyCharged(meta) then
+                industrialtest.api.addPowerToItem(armorList[i], amount)
+                inv:set_stack("armor", i, armorList[i])
+                break
+            end
+        end
+    end
+    return true
 end
 
 if industrialtest.mtgAvailable then
