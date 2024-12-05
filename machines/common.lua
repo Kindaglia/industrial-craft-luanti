@@ -338,6 +338,14 @@ function industrialtest.internal.registerMachine(config)
 			return machine.getFormspec(pos, config)
 		end
 	}
+
+
+	if config.name == "solar_panel" or config.name == "lv_solar_array" or config.name == "mv_solar_array" or config.name == "hv_solar_array" then
+		definition.drawtype = "mesh"
+		definition.mesh = "solar_panel.obj"
+		definition.tiles = { "big_solar_panel_block.png" }
+	end
+
 	if industrialtest.mtgAvailable then
 		definition.groups = { cracky = 2 }
 		if config.sounds == "metal" then

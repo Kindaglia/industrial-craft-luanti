@@ -73,12 +73,7 @@ local function registerSolarPanelGenerator(config)
 		groups = {
 			_industrialtest_hasPowerOutput = 1
 		},
-		customKeys = {
-			tiles = {
-				"industrialtest_machine_block.png^industrialtest_" .. config.name .. "_top.png",
-				"industrialtest_machine_block.png"
-			}
-		},
+		tiles = { "big_solar_panel_block.png" },
 		onConstruct = solarPanel.onConstruct,
 		onTimer = function(pos, elapsed, meta, inv)
 			return solarPanel.onTimer(pos, elapsed, meta, inv, config)
