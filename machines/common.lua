@@ -343,7 +343,7 @@ function industrialtest.internal.registerMachine(config)
 	if config.name == "solar_panel" or config.name == "lv_solar_array" or config.name == "mv_solar_array" or config.name == "hv_solar_array" then
 		definition.drawtype = "mesh"
 		definition.mesh = "solar_panel.obj"
-		definition.tiles = { "big_solar_panel_block.png" }
+		definition.tiles = { config.name .. ".png" }
 	end
 
 	if industrialtest.mtgAvailable then
