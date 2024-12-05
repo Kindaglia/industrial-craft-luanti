@@ -64,15 +64,20 @@ local function registerElectricChainsaw(config)
 			dig_speed_class = config.digSpeedClass,
 		}
 		definition.on_place = function(itemstack, user, pointed)
-			local meta = itemstack:get_meta()
+			local meta = itemstack:get_meta() -- Check if the tool has enough power
 			if meta:get_int("industrialtest.powerAmount") >= 20 then
 				local itemstackCopy = itemstack
-				if itemstack:get_wear() ~= industrialtest.internal.mclMakeStrippedTrunk(itemstackCopy, user, pointed, true):get_wear() then
+				local new_itemstack = industrialtest.internal.mclMakeStrippedTrunk(itemstackCopy, user, pointed, true)
+				if new_itemstack and itemstack:get_wear() ~= new_itemstack:get_wear() then
 					industrialtest.api.addPowerToItem(itemstack, -20)
 					return itemstack
 				end
 			end
-			return nil
+			local offhand_result = mcl_offhand.place(user, pointed)
+			if offhand_result and (type(offhand_result) == "userdata" or type(offhand_result) == "table") then
+				return offhand_result
+			end -- Default return: original itemstack or nil
+			return itemstack
 		end
 		definition._mcl_diggroups = {
 			axey = {
