@@ -42,6 +42,14 @@ local function registerElectricDrill(config)
 		_industrialtest_powerFlow = industrialtest.api.lvPowerFlow,
 		_industrialtest_inactiveName = "industrialtest:" .. config.name
 	}
+
+	definition.on_place = function(itemstack, user, pointed)
+		local offhand_result = mcl_offhand.place(user, pointed)
+		if offhand_result and (type(offhand_result) == "userdata" or type(offhand_result) == "table") then
+			return offhand_result
+		end
+		return nil
+	end
 	if industrialtest.mtgAvailable then
 		definition.tool_capabilities = {
 			full_punch_interval = 0.5,
