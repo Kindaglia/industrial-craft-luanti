@@ -184,12 +184,12 @@ miningLaser.onUse = function(itemstack, user)
 end
 
 
-miningLaser.on_place = function(itemstack, user, pointed)
-	local offhand_result = mcl_offhand.place(user, pointed)
-	if offhand_result and (type(offhand_result) == "userdata" or type(offhand_result) == "table") then
-		return offhand_result
+miningLaser.on_place = function(itemstack, placer, pointed_thing)
+	local rc = mcl_util.call_on_rightclick(itemstack, placer, pointed_thing)
+	if rc then return rc end
+	if not mcl_offhand.place(placer, pointed_thing) and old_hand_op then
+		return old_hand_op(itemstack, placer, pointed_thing)
 	end
-	return nil
 end
 
 minetest.register_tool("industrialtest:mining_laser", {
