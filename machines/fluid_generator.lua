@@ -298,3 +298,13 @@ minetest.register_craft({
 		{"",industrialtest.elementKeys.stick,""}
 	}
 })
+
+minetest.register_craft({
+	type="shaped",
+	output="industrialtest:geothermal_generator",
+	recipe={
+		{industrialtest.elementKeys.glass,"industrialtest:empty_cell",industrialtest.elementKeys.glass},
+		{industrialtest.elementKeys.glass,"industrialtest:empty_cell",industrialtest.elementKeys.glass},
+		{"industrialtest:refined_iron_ingot","industrialtest:generator","industrialtest:refined_iron_ingot"}
+	}
+})
