@@ -24,7 +24,8 @@ local function registerSilkExtractor(config)
         _industrialtest_powerStorage = true,
         _industrialtest_powerCapacity = 10000,
         _industrialtest_powerFlow = industrialtest.api.lvPowerFlow,
-        _industrialtest_inactiveName = "industrialtest:" .. config.name
+        _industrialtest_inactiveName = "industrialtest:" .. config.name,
+        _mcl_silk_touch = true -- Aggiunta della proprietà Silk Touch
     }
 
     definition.on_place = function(itemstack, placer, pointed_thing)
@@ -94,6 +95,27 @@ local function registerSilkExtractor(config)
     industrialtest.internal.registeredElectricDrills["industrialtest:" .. config.name] = true
     industrialtest.internal.registeredElectricDrills["industrialtest:" .. config.name .. "_active"] = true
 end
+
+-- Modifica di minetest.handle_node_drops per supportare Silk Touch
+local old_handle_node_drops = minetest.handle_node_drops
+
+minetest.handle_node_drops = function(pos, drops, digger)
+    if digger and digger:is_player() then
+        local tool = digger:get_wielded_item()
+        local tooldef = minetest.registered_items[tool:get_name()]
+        local nodedef = minetest.registered_nodes[minetest.get_node(pos).name]
+
+        if tooldef and nodedef and tooldef._mcl_silk_touch and nodedef._mcl_silk_touch_drop then
+            if nodedef._mcl_silk_touch_drop == true then
+                drops = { minetest.get_node(pos).name }
+            else
+                drops = nodedef._mcl_silk_touch_drop
+            end
+        end
+    end
+    old_handle_node_drops(pos, drops, digger)
+end
+
 local definition = {
     name = "electric_silk_extractor",
     displayName = S("Silk Extractor")
@@ -111,9 +133,10 @@ elseif industrialtest.mclAvailable then
     definition.activeDigSpeed = 7
 end
 registerSilkExtractor(definition)
+
 minetest.register_craft({
     type = "shaped",
-    output = "industrialtest:electric_drill",
+    output = "industrialtest:electric_silk_extractor",
     recipe = {
         { "industrialtest:refined_iron_ingot", "industrialtest:refined_iron_ingot", "industrialtest:refined_iron_ingot" },
         { "industrialtest:refined_iron_ingot", "industrialtest:electronic_circuit", "industrialtest:refined_iron_ingot" },
